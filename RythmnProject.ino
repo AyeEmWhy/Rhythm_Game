@@ -1,6 +1,7 @@
-#define IN_GAME 0 //in game state 
-#define IN_MENU 1 //in menu state
-#define GAME_OVER 2 //game over state
+#define IN_GAME 0 // in game state 
+#define IN_MENU 1 // in menu state
+#define GAME_OVER 2 // game over state
+#define YOU_WIN 3 // you win state
 
 #include <TVout.h>
 #include <fontALL.h>
@@ -8,11 +9,15 @@
 TVout TV;
 TVout Screen;
 
+/**TESTING**/
+ double current = 100.0;
+ double prev_test_score = 0;
+ int moveY = 85;
+/*****/
 double randomNumber;
 
 unsigned char cx, cy;
 int state = IN_MENU;
-
 const int size = 10;
 
 // O indicates off
@@ -20,12 +25,7 @@ int buttonSwitchOne = 0; // buttonOne
 int buttonSwitchTwo = 0; // buttonTwo
 int buttonSwitchThree = 0;
 
-int scoreKeeper = 85;
-int scoreKeeperColor = 0;
-
-
-
-int testScore = 0; // holds the score
+double testScore = 50; // holds the score
 
 double x = 8.25; //first column's X
 double x2 = 38.125; // second column's X
@@ -35,8 +35,6 @@ double x3 = 67.875; //third column's X
 double y = 15.0;
 double y2 = 15.0;
 double y3 = 15.0;
-
-
 double velY[3] = {y,y2,y3};  //array for moving y values
 
 const int buttonOne = 6; 
@@ -58,14 +56,16 @@ void setup() {
   delay(1000);
 }// end of setup function
 
+
 // start of loop function
 void loop() {
-
+  /**SET THE STARTING MENU**/
   if(state == IN_MENU) {
     drawMenu();
   }
   else {
   createGUI(); // create table
+  /*************************/
   TV.print(90,17, testScore); // display running score ---
 
 
@@ -77,66 +77,45 @@ void loop() {
   readButtonTwo(x2,y2,buttonSwitchTwo);
   readButtonThree(x3,y3,buttonSwitchThree);
 
+  /**CHANGE VELOCITY**/
   y = y + velY[0];
   y2 = y2 + velY[1];
   y3 = y3 + velY[2];
+  /*************************/
 
+  
+  /**CREATE SQUARE**/
   createSquare(x,y,10,4,WHITE); // create moving square 1
   createSquare(x2,y2,10,4,WHITE); // create moving square 2
   createSquare(x3, y3, 10,4, WHITE);
+  /*************************/
 
-    bool checkIfIncrease = false;
+  /**DISPLAY SCOREBAR**/
+   if(testScore >= 500)
+  {
+     TV.print(95,65," __ "); 
+    TV.clear_screen();  
+    state = YOU_WIN;
 
-  if(testScore - scoreKeeper < 0 ) {
-    checkIfIncrease = false;
   }
-  else {
-    checkIfIncrease = true;
+  if(testScore >= current-10.0 && testScore <= current+10.0) {
+    TV.print(95, moveY, "|__|");
+    moveY -= 5;
+    current += 50;
+    prev_test_score = testScore;
+  } 
+  else if(testScore< current -50 && testScore < prev_test_score){
+    moveY += 5;
+   current -= 50;
+   TV.print(95,moveY,"    ");      
   }
-  if(checkIfIncrease) {
-    TV.draw_rect(98,85,10, 3,WHITE,BLACK); // SMILIY square
-   
-  } else {
-        TV.draw_rect(98,85,12, 3,BLACK,BLACK); // SMILIY square 
-  }
-  /*
-  else if(testScore <= 100)
-    TV.draw_rect(98,82,10, 3,WHITE,BLACK); // SMILIY square 
- else if(testScore <= 150)
-    TV.draw_rect(98,79,10, 3,WHITE,BLACK); // SMILIY square 
- else if(testScore <= 200)
-    TV.draw_rect(98,76,10, 3,WHITE,BLACK); // SMILIY square 
- else if(testScore <= 250)
-    TV.draw_rect(98,73,10, 3,WHITE,BLACK); // SMILIY square 
- else if(testScore <= 300)
-    TV.draw_rect(98,70,10, 3,WHITE,BLACK); // SMILIY square 
- else if(testScore <= 350)
-    TV.draw_rect(98,67,10, 3,WHITE,BLACK); // SMILIY square 
- else if(testScore <= 400)
-    TV.draw_rect(98,64,10, 3,WHITE,BLACK); // SMILIY square 
- else if(testScore <= 450)
-    TV.draw_rect(98,61,10, 3,WHITE,BLACK); // SMILIY square 
- else if(testScore <= 500)
-    TV.draw_rect(98,58,10, 3,WHITE,BLACK); // SMILIY square 
-
-  */
-
-   
-
+  /*************************/
+  
   speedGenerator(y,0);
   speedGenerator(y2,1);
   speedGenerator(y3,2);
-
   }
   TV.delay(16);
-
-  scoreKeeper = testScore;
-//}
-
-
-
-// TV.clear_screen(); // clear the moving square
-
 } //end of loop function
 
 void createSquare(int x, int y, int sizeX, int sizeY, int color) {
@@ -155,8 +134,6 @@ void speedGenerator(double &y, int index) { //resets Y value to top if it passes
   }
 }
 
-
-
 void readButtonOne(double x, double y,int buttonOne) 
 { // open curly brace function
  if(buttonOne == HIGH) 
@@ -164,7 +141,7 @@ void readButtonOne(double x, double y,int buttonOne)
       if(y <= 89 && y >= 78 && x == 8.25) // first square
       { // curly if y
           TV.print(5.25,0,"GREAT!");
-          testScore = testScore + 3;
+          testScore = testScore + 1.5;
         } 
         else {
           TV.print(5.25,0,"MISS! ");
@@ -182,7 +159,7 @@ void readButtonTwo(double x2, double y2,int buttonTwo)
         if ( y2<= 89 && y2 >= 78 && x2 == 38.125) // second square
         {
           TV.print(35.125,0,"GREAT!");
-          testScore++;
+          testScore = testScore + 1.5;
         } 
         else {
           TV.print(35.125,0,"MISS! ");
@@ -201,7 +178,7 @@ void readButtonThree (double x3, double y3,int buttonThree)
       if(y3 <= 95 && y3 >= 72 && x3 == 67.875) // first square
       { // curly if y
           TV.print(64.875,0,"GREAT!");
-          testScore = testScore + 3;
+          testScore = testScore + 1.5;
         } 
         else {
           TV.print(64.875,0,"MISS! ");
@@ -266,5 +243,59 @@ void drawMenu() {
       }
 }
 // end of drawMenu function
+
+// start of youWin() screen
+void youWin() {
+    //testScore = 0;
+    //TV.clear_screen();
+    TV.select_font(font8x8);
+    TV.print(20, 25, "AWESOME!");
+    TV.print(20, 35, "YOU WIN!");
+    TV.select_font(font4x6);
+    TV.print(28, 60, "Press Any Button");
+    TV.print(30, 70, "to play again");
+    buttonSwitchOne = digitalRead(buttonOne);
+    buttonSwitchTwo = digitalRead(buttonTwo);
+    buttonSwitchThree = digitalRead(buttonThree);
+  
+    delay(1000);
+
+      if(buttonSwitchOne == HIGH || buttonSwitchTwo == HIGH || buttonSwitchThree == HIGH  )
+      { // first curly brace
+
+        TV.clear_screen();
+        state = IN_GAME;
+
+      } // end first curly brace
+      else {
+        youWin();
+      }
+}
+
+// start of gameOver() screen
+void gameOver() {
+    testScore = 0;
+    //TV.clear_screen();
+    TV.select_font(font8x8);
+    TV.print(20, 25, "GAME OVER!");
+    TV.select_font(font4x6);
+    TV.print(28, 60, "Press Any Button");
+    TV.print(30, 70, "to play again");
+    buttonSwitchOne = digitalRead(buttonOne);
+    buttonSwitchTwo = digitalRead(buttonTwo);
+    buttonSwitchThree = digitalRead(buttonThree);
+  
+    delay(1000);
+
+      if(buttonSwitchOne == HIGH || buttonSwitchTwo == HIGH || buttonSwitchThree == HIGH  )
+      { // first curly brace
+        TV.clear_screen();
+        state = IN_GAME;
+      } // end first curly brace
+      else {
+        gameOver();
+      }
+}
+// end of gameOver screen
 
 
